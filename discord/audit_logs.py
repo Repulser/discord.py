@@ -223,7 +223,7 @@ class AuditLogEntry:
             elif self.action is enums.AuditLogAction.message_delete:
                 channel_id = self.extra['channel_id']
                 elems = {
-                    'count': self.extra['count'])
+                    'count': self.extra['count'],
                     'channel': self.guild.get_channel(channel_id) or Object(id=channel_id)
                 }
                 self.extra = type('_AuditLogProxy', (), elems)()

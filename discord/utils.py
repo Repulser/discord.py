@@ -237,7 +237,7 @@ def _get_as_snowflake(data, key):
     except KeyError:
         return None
     else:
-        return value and int(value)
+        return value and value
 
 def _get_mime_type_for_image(data):
     if data.startswith(b'\x89\x50\x4E\x47\x0D\x0A\x1A\x0A'):

@@ -144,7 +144,7 @@ class ConnectionState:
 
     def store_user(self, data):
         # this way is 300% faster than `dict.setdefault`.
-        user_id = int(data['id'])
+        user_id = data['id']
         try:
             return self._users[user_id]
         except KeyError:
@@ -155,7 +155,7 @@ class ConnectionState:
         return self._users.get(id)
 
     def store_emoji(self, guild, data):
-        emoji_id = int(data['id'])
+        emoji_id = data['id']
         self._emojis[emoji_id] = emoji = Emoji(guild=guild, state=self, data=data)
         return emoji
 
@@ -291,7 +291,7 @@ class ConnectionState:
 
         for relationship in data.get('relationships', []):
             try:
-                r_id = int(relationship['id'])
+                r_id = relationship['id']
             except KeyError:
                 continue
             else:
@@ -308,14 +308,14 @@ class ConnectionState:
         self.dispatch('resumed')
 
     def parse_message_create(self, data):
-        channel = self.get_channel(int(data['channel_id']))
+        channel = self.get_channel(data['channel_id'])
         message = Message(channel=channel, data=data, state=self)
         self.dispatch('message', message)
         self._messages.append(message)
 
     def parse_message_delete(self, data):
-        message_id = int(data['id'])
-        channel_id = int(data['channel_id'])
+        message_id = data['id']
+        channel_id = data['channel_id']
         self.dispatch('raw_message_delete', message_id, channel_id)
 
         found = self._get_message(message_id)
@@ -324,8 +324,8 @@ class ConnectionState:
             self._messages.remove(found)
 
     def parse_message_delete_bulk(self, data):
-        message_ids = { int(x) for x in data.get('ids', []) }
-        channel_id = int(data['channel_id'])
+        message_ids = { x for x in data.get('ids', []) }
+        channel_id = data['channel_id']
         self.dispatch('raw_bulk_message_delete', message_ids, channel_id)
         to_be_deleted = [message for message in self._messages if message.id in message_ids]
         for msg in to_be_deleted:
@@ -333,7 +333,7 @@ class ConnectionState:
             self._messages.remove(msg)
 
     def parse_message_update(self, data):
-        message_id = int(data['id'])
+        message_id = data['id']
         self.dispatch('raw_message_edit', message_id, data)
         message = self._get_message(message_id)
         if message is not None:
@@ -350,9 +350,9 @@ class ConnectionState:
             self.dispatch('message_edit', older_message, message)
 
     def parse_message_reaction_add(self, data):
-        message_id = int(data['message_id'])
-        user_id = int(data['user_id'])
-        channel_id = int(data['channel_id'])
+        message_id = data['message_id']
+        user_id = data['user_id']
+        channel_id = data['channel_id']
 
         emoji_data = data['emoji']
         emoji_id = utils._get_as_snowflake(emoji_data, 'id')
@@ -369,8 +369,8 @@ class ConnectionState:
                 self.dispatch('reaction_add', reaction, user)
 
     def parse_message_reaction_remove_all(self, data):
-        message_id = int(data['message_id'])
-        channel_id = int(data['channel_id'])
+        message_id = data['message_id']
+        channel_id = data['channel_id']
         self.dispatch('raw_reaction_clear', message_id, channel_id)
 
         message =  self._get_message(message_id)
@@ -380,9 +380,9 @@ class ConnectionState:
             self.dispatch('reaction_clear', message, old_reactions)
 
     def parse_message_reaction_remove(self, data):
-        message_id = int(data['message_id'])
-        user_id = int(data['user_id'])
-        channel_id = int(data['channel_id'])
+        message_id = data['message_id']
+        user_id = data['user_id']
+        channel_id = data['channel_id']
 
         emoji_data = data['emoji']
         emoji_id = utils._get_as_snowflake(emoji_data, 'id')
@@ -409,7 +409,7 @@ class ConnectionState:
             return
 
         user = data['user']
-        member_id = int(user['id'])
+        member_id = user['id']
         member = guild.get_member(member_id)
         if member is None:
             if 'username' not in user:
@@ -429,7 +429,7 @@ class ConnectionState:
 
     def parse_channel_delete(self, data):
         guild =  self._get_guild(utils._get_as_snowflake(data, 'guild_id'))
-        channel_id = int(data['id'])
+        channel_id = data['id']
         if guild is not None:
             channel = guild.get_channel(channel_id)
             if channel is not None:
@@ -445,7 +445,7 @@ class ConnectionState:
 
     def parse_channel_update(self, data):
         channel_type = try_enum(ChannelType, data.get('type'))
-        channel_id = int(data['id'])
+        channel_id = data['id']
         if channel_type is ChannelType.group:
             channel = self._get_private_channel(channel_id)
             old_channel = copy.copy(channel)
@@ -486,7 +486,7 @@ class ConnectionState:
 
 
     def parse_channel_pins_update(self, data):
-        channel_id = int(data['channel_id'])
+        channel_id = data['channel_id']
         channel = self.get_channel(channel_id)
         if channel is None:
             log.warning('CHANNEL_PINS_UPDATE referencing an unknown channel ID: %s. Discarding.', channel_id)
@@ -505,13 +505,13 @@ class ConnectionState:
             self.dispatch('guild_channel_pins_update', channel, last_pin)
 
     def parse_channel_recipient_add(self, data):
-        channel = self._get_private_channel(int(data['channel_id']))
+        channel = self._get_private_channel(data['channel_id'])
         user = self.store_user(data['user'])
         channel.recipients.append(user)
         self.dispatch('group_join', channel, user)
 
     def parse_channel_recipient_remove(self, data):
-        channel = self._get_private_channel(int(data['channel_id']))
+        channel = self._get_private_channel(data['channel_id'])
         user = self.store_user(data['user'])
         try:
             channel.recipients.remove(user)
@@ -521,7 +521,7 @@ class ConnectionState:
             self.dispatch('group_remove', channel, user)
 
     def parse_guild_member_add(self, data):
-        guild = self._get_guild(int(data['guild_id']))
+        guild = self._get_guild(data['guild_id'])
         if guild is None:
             log.warning('GUILD_MEMBER_ADD referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
             return
@@ -532,9 +532,9 @@ class ConnectionState:
         self.dispatch('member_join', member)
 
     def parse_guild_member_remove(self, data):
-        guild = self._get_guild(int(data['guild_id']))
+        guild = self._get_guild(data['guild_id'])
         if guild is not None:
-            user_id = int(data['user']['id'])
+            user_id = data['user']['id']
             member = guild.get_member(user_id)
             if member is not None:
                 guild._remove_member(member)
@@ -544,9 +544,9 @@ class ConnectionState:
             log.warning('GUILD_MEMBER_REMOVE referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
 
     def parse_guild_member_update(self, data):
-        guild = self._get_guild(int(data['guild_id']))
+        guild = self._get_guild(data['guild_id'])
         user = data['user']
-        user_id = int(user['id'])
+        user_id = user['id']
         if guild is None:
             log.warning('GUILD_MEMBER_UPDATE referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
             return
@@ -560,7 +560,7 @@ class ConnectionState:
             log.warning('GUILD_MEMBER_UPDATE referencing an unknown member ID: %s. Discarding.', user_id)
 
     def parse_guild_emojis_update(self, data):
-        guild = self._get_guild(int(data['guild_id']))
+        guild = self._get_guild(data['guild_id'])
         if guild is None:
             log.warning('GUILD_EMOJIS_UPDATE referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
             return
@@ -574,7 +574,7 @@ class ConnectionState:
             # GUILD_CREATE with unavailable in the response
             # usually means that the guild has become available
             # and is therefore in the cache
-            guild = self._get_guild(int(data['id']))
+            guild = self._get_guild(data['id'])
             if guild is not None:
                 guild.unavailable = False
                 guild._from_data(data)
@@ -637,11 +637,11 @@ class ConnectionState:
             self.dispatch('guild_join', guild)
 
     def parse_guild_sync(self, data):
-        guild = self._get_guild(int(data['id']))
+        guild = self._get_guild(data['id'])
         guild._sync(data)
 
     def parse_guild_update(self, data):
-        guild = self._get_guild(int(data['id']))
+        guild = self._get_guild(data['id'])
         if guild is not None:
             old_guild = copy.copy(guild)
             guild._from_data(data)
@@ -650,7 +650,7 @@ class ConnectionState:
             log.warning('GUILD_UPDATE referencing an unknown guild ID: %s. Discarding.', data['id'])
 
     def parse_guild_delete(self, data):
-        guild = self._get_guild(int(data['id']))
+        guild = self._get_guild(data['id'])
         if guild is None:
             log.warning('GUILD_DELETE referencing an unknown guild ID: %s. Discarding.', data['id'])
             return
@@ -674,7 +674,7 @@ class ConnectionState:
         # hence we don't remove it from cache or do anything
         # strange with it, the main purpose of this event
         # is mainly to dispatch to another event worth listening to for logging
-        guild = self._get_guild(int(data['guild_id']))
+        guild = self._get_guild(data['guild_id'])
         if guild is not None:
             try:
                 user = User(data=data['user'], state=self)
@@ -685,14 +685,14 @@ class ConnectionState:
                 self.dispatch('member_ban', guild, member)
 
     def parse_guild_ban_remove(self, data):
-        guild = self._get_guild(int(data['guild_id']))
+        guild = self._get_guild(data['guild_id'])
         if guild is not None:
             if 'user' in data:
                 user = self.store_user(data['user'])
                 self.dispatch('member_unban', guild, user)
 
     def parse_guild_role_create(self, data):
-        guild = self._get_guild(int(data['guild_id']))
+        guild = self._get_guild(data['guild_id'])
         if guild is None:
             log.warning('GUILD_ROLE_CREATE referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
             return
@@ -703,9 +703,9 @@ class ConnectionState:
         self.dispatch('guild_role_create', role)
 
     def parse_guild_role_delete(self, data):
-        guild = self._get_guild(int(data['guild_id']))
+        guild = self._get_guild(data['guild_id'])
         if guild is not None:
-            role_id = int(data['role_id'])
+            role_id = data['role_id']
             role = utils.find(lambda r: r.id == role_id, guild.roles)
             try:
                 guild._remove_role(role)
@@ -717,10 +717,10 @@ class ConnectionState:
             log.warning('GUILD_ROLE_DELETE referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
 
     def parse_guild_role_update(self, data):
-        guild = self._get_guild(int(data['guild_id']))
+        guild = self._get_guild(data['guild_id'])
         if guild is not None:
             role_data = data['role']
-            role_id = int(role_data['id'])
+            role_id = role_data['id']
             role = utils.find(lambda r: r.id == role_id, guild.roles)
             if role is not None:
                 old_role = copy.copy(role)
@@ -730,7 +730,7 @@ class ConnectionState:
             log.warning('GUILD_ROLE_UPDATE referencing an unknown guild ID: %s. Discarding.', data['guild_id'])
 
     def parse_guild_members_chunk(self, data):
-        guild_id = int(data['guild_id'])
+        guild_id = data['guild_id']
         guild = self._get_guild(guild_id)
         members = data.get('members', [])
         for member in members:
@@ -746,7 +746,7 @@ class ConnectionState:
         guild = self._get_guild(utils._get_as_snowflake(data, 'guild_id'))
         channel_id = utils._get_as_snowflake(data, 'channel_id')
         if guild is not None:
-            if int(data['user_id']) == self.user.id:
+            if data['user_id'] == self.user.id:
                 voice = self._get_voice_client(guild.id)
                 if voice is not None:
                     ch = guild.get_channel(channel_id)
@@ -766,16 +766,16 @@ class ConnectionState:
 
     def parse_voice_server_update(self, data):
         try:
-            key_id = int(data['guild_id'])
+            key_id = data['guild_id']
         except KeyError:
-            key_id = int(data['channel_id'])
+            key_id = data['channel_id']
 
         vc = self._get_voice_client(key_id)
         if vc is not None:
             compat.create_task(vc._create_socket(key_id, data))
 
     def parse_typing_start(self, data):
-        channel = self.get_channel(int(data['channel_id']))
+        channel = self.get_channel(data['channel_id'])
         if channel is not None:
             member = None
             user_id = utils._get_as_snowflake(data, 'user_id')
@@ -791,7 +791,7 @@ class ConnectionState:
                 self.dispatch('typing', channel, member, timestamp)
 
     def parse_relationship_add(self, data):
-        key = int(data['id'])
+        key = data['id']
         old = self.user.get_relationship(key)
         new = Relationship(state=self, data=data)
         self.user._relationships[key] = new
@@ -801,7 +801,7 @@ class ConnectionState:
             self.dispatch('relationship_add', new)
 
     def parse_relationship_remove(self, data):
-        key = int(data['id'])
+        key = data['id']
         try:
             old = self.user._relationships.pop(key)
         except KeyError:

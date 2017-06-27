@@ -135,7 +135,7 @@ class Emoji(Hashable):
     def _from_data(self, emoji):
         self.require_colons = emoji['require_colons']
         self.managed = emoji['managed']
-        self.id = int(emoji['id'])
+        self.id = emoji['id']
         self.name = emoji['name']
         self.roles = emoji.get('roles', [])
         if self.roles:

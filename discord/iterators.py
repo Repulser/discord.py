@@ -253,18 +253,18 @@ class HistoryIterator(_AsyncIterator):
 
             self._retrieve_messages = self._retrieve_messages_around_strategy
             if self.before and self.after:
-                self._filter = lambda m: self.after.id < int(m['id']) < self.before.id
+                self._filter = lambda m: self.after.id < m['id'] < self.before.id
             elif self.before:
-                self._filter = lambda m: int(m['id']) < self.before.id
+                self._filter = lambda m: m['id'] < self.before.id
             elif self.after:
-                self._filter = lambda m: self.after.id < int(m['id'])
+                self._filter = lambda m: self.after.id < m['id']
         elif self.before and self.after:
             if self.reverse:
                 self._retrieve_messages = self._retrieve_messages_after_strategy
-                self._filter = lambda m: int(m['id']) < self.before.id
+                self._filter = lambda m: m['id'] < self.before.id
             else:
                 self._retrieve_messages = self._retrieve_messages_before_strategy
-                self._filter = lambda m: int(m['id']) > self.after.id
+                self._filter = lambda m: m['id'] > self.after.id
         elif self.after:
             self._retrieve_messages = self._retrieve_messages_after_strategy
         else:
@@ -347,7 +347,7 @@ class HistoryIterator(_AsyncIterator):
         if len(data):
             if self.limit is not None:
                 self.limit -= retrieve
-            self.before = Object(id=int(data[-1]['id']))
+            self.before = Object(id=data[-1]['id'])
         return data
 
     @asyncio.coroutine
@@ -358,7 +358,7 @@ class HistoryIterator(_AsyncIterator):
         if len(data):
             if self.limit is not None:
                 self.limit -= retrieve
-            self.after = Object(id=int(data[0]['id']))
+            self.after = Object(id=data[0]['id'])
         return data
 
     @asyncio.coroutine
@@ -402,10 +402,10 @@ class AuditLogIterator(_AsyncIterator):
         if self.before and self.after:
             if self.reverse:
                 self._strategy = self._after_strategy
-                self._filter = lambda m: int(m['id']) < self.before.id
+                self._filter = lambda m: m['id'] < self.before.id
             else:
                 self._strategy = self._before_strategy
-                self._filter = lambda m: int(m['id']) > self.after.id
+                self._filter = lambda m: m['id'] > self.after.id
         elif self.after:
             self._strategy = self._after_strategy
         else:
@@ -421,7 +421,7 @@ class AuditLogIterator(_AsyncIterator):
         if len(data) and entries:
             if self.limit is not None:
                 self.limit -= retrieve
-            self.before = Object(id=int(entries[-1]['id']))
+            self.before = Object(id=entries[-1]['id'])
         return data.get('users', []), entries
 
     @asyncio.coroutine
@@ -433,7 +433,7 @@ class AuditLogIterator(_AsyncIterator):
         if len(data) and entries:
             if self.limit is not None:
                 self.limit -= retrieve
-            self.after = Object(id=int(entries[0]['id']))
+            self.after = Object(id=entries[0]['id'])
         return data.get('users', []), entries
 
     @asyncio.coroutine

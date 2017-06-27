@@ -970,7 +970,7 @@ class Client:
         data = yield from self.http.get_user_profile(user_id)
 
         def transform(d):
-            return state._get_guild(int(d['id']))
+            return state._get_guild(d['id'])
 
         since = data.get('premium_since')
         mutual_guilds = list(filter(None, map(transform, data.get('mutual_guilds', []))))

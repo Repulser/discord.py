@@ -82,7 +82,7 @@ class TextChannel(discord.abc.Messageable, discord.abc.GuildChannel, Hashable):
 
     def __init__(self, *, state, guild, data):
         self._state = state
-        self.id = int(data['id'])
+        self.id = data['id']
         self._update(guild, data)
 
     def __repr__(self):
@@ -344,7 +344,7 @@ class VoiceChannel(discord.abc.Connectable, discord.abc.GuildChannel, Hashable):
 
     def __init__(self, *, state, guild, data):
         self._state = state
-        self.id = int(data['id'])
+        self.id = data['id']
         self._update(guild, data)
 
     def __repr__(self):
@@ -452,7 +452,7 @@ class DMChannel(discord.abc.Messageable, Hashable):
         self._state = state
         self.recipient = state.store_user(data['recipients'][0])
         self.me = me
-        self.id = int(data['id'])
+        self.id = data['id']
 
     @asyncio.coroutine
     def _get_channel(self):
@@ -539,7 +539,7 @@ class GroupChannel(discord.abc.Messageable, Hashable):
 
     def __init__(self, *, me, state, data):
         self._state = state
-        self.id = int(data['id'])
+        self.id = data['id']
         self.me = me
         self._update_group(data)
 

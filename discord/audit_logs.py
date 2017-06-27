@@ -43,23 +43,23 @@ def _transform_color(entry, data):
     return Colour(data)
 
 def _transform_snowflake(entry, data):
-    return int(data)
+    return data
 
 def _transform_channel(entry, data):
     if data is None:
         return None
-    channel = entry.guild.get_channel(int(data)) or Object(id=data)
+    channel = entry.guild.get_channel(data) or Object(id=data)
     return channel
 
 def _transform_owner_id(entry, data):
     if data is None:
         return None
-    return entry._get_member(int(data))
+    return entry._get_member(data)
 
 def _transform_inviter_id(entry, data):
     if data is None:
         return None
-    return entry._get_member(int(data))
+    return entry._get_member(data)
 
 def _transform_overwrites(entry, data):
     overwrites = []
@@ -69,7 +69,7 @@ def _transform_overwrites(entry, data):
         ow = PermissionOverwrite.from_pair(allow, deny)
 
         ow_type = elem['type']
-        ow_id = int(elem['id'])
+        ow_id = elem['id']
         if ow_type == 'role':
             target = utils.find(lambda r: r.id == ow_id, entry.guild.roles)
         else:
@@ -165,7 +165,7 @@ class AuditLogChanges:
         roles = entry.guild.roles
 
         for e in elem:
-            role_id = int(e['id'])
+            role_id = e['id']
             role = utils.find(lambda r: r.id == role_id, roles)
 
             if role is None:
@@ -210,7 +210,7 @@ class AuditLogEntry:
 
     def _from_data(self, data):
         self.action = enums.AuditLogAction(data['action_type'])
-        self.id = int(data['id'])
+        self.id = data['id']
 
         # this key is technically not usually present
         self.reason = data.get('reason')
@@ -219,17 +219,17 @@ class AuditLogEntry:
         if self.extra:
             if self.action is enums.AuditLogAction.member_prune:
                 # member prune has two keys with useful information
-                self.extra = type('_AuditLogProxy', (), {k: int(v) for k, v in self.extra.items()})()
+                self.extra = type('_AuditLogProxy', (), {k: v for k, v in self.extra.items()})()
             elif self.action is enums.AuditLogAction.message_delete:
-                channel_id = int(self.extra['channel_id'])
+                channel_id = self.extra['channel_id']
                 elems = {
-                    'count': int(self.extra['count']),
+                    'count': self.extra['count'])
                     'channel': self.guild.get_channel(channel_id) or Object(id=channel_id)
                 }
                 self.extra = type('_AuditLogProxy', (), elems)()
             elif self.action.name.startswith('overwrite_'):
                 # the overwrite_ actions have a dict with some information
-                instance_id = int(self.extra['id'])
+                instance_id = self.extra['id']
                 the_type = self.extra.get('type')
                 if the_type == 'member':
                     self.extra = self._get_member(instance_id)
@@ -247,7 +247,7 @@ class AuditLogEntry:
         # into meaningful data when requested
         self._changes = data.get('changes', [])
 
-        self.user = self._get_member(int(data['user_id']))
+        self.user = self._get_member(data['user_id'])
         self._target_id = utils._get_as_snowflake(data, 'target_id')
 
     def _get_member(self, user_id):

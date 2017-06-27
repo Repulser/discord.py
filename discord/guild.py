@@ -150,7 +150,7 @@ class Guild(Hashable):
         return '<Guild id={0.id} name={0.name!r} chunked={0.chunked}>'.format(self)
 
     def _update_voice_state(self, data, channel_id):
-        user_id = int(data['user_id'])
+        user_id = data['user_id']
         channel = self.get_channel(channel_id)
         try:
             # check if we should remove the voice state from cache
@@ -205,7 +205,7 @@ class Guild(Hashable):
         self.afk_timeout = guild.get('afk_timeout')
         self.icon = guild.get('icon')
         self.unavailable = guild.get('unavailable', False)
-        self.id = int(guild['id'])
+        self.id = guild['id']
         self.roles = [Role(guild=self, data=r, state=self._state) for r in guild.get('roles', [])]
         self.mfa_level = guild.get('mfa_level')
         self.emojis = tuple(map(lambda d: self._state.store_emoji(self, d), guild.get('emojis', [])))
@@ -223,7 +223,7 @@ class Guild(Hashable):
         self.afk_channel = self.get_channel(utils._get_as_snowflake(guild, 'afk_channel_id'))
 
         for obj in guild.get('voice_states', []):
-            self._update_voice_state(obj, int(obj['channel_id']))
+            self._update_voice_state(obj, obj['channel_id'])
 
     def _sync(self, data):
         try:
@@ -232,7 +232,7 @@ class Guild(Hashable):
             pass
 
         for presence in data.get('presences', []):
-            user_id = int(presence['user']['id'])
+            user_id = presence['user']['id']
             member = self.get_member(user_id)
             if member is not None:
                 member.status = try_enum(Status, presence['status'])
@@ -805,7 +805,7 @@ class Guild(Hashable):
         data = yield from self._state.http.invites_from(self.id)
         result = []
         for invite in data:
-            channel = self.get_channel(int(invite['channel']['id']))
+            channel = self.get_channel(invite['channel']['id'])
             invite['channel'] = channel
             invite['guild'] = self
             result.append(Invite(state=self._state, data=invite))

@@ -100,8 +100,8 @@ class Invite(Hashable):
 
     @classmethod
     def from_incomplete(cls, *, state, data):
-        guild_id = int(data['guild']['id'])
-        channel_id = int(data['channel']['id'])
+        guild_id = data['guild']['id']
+        channel_id = data['channel']['id']
         guild = state._get_guild(guild_id)
         if guild is not None:
             channel = guild.get_channel(channel_id)

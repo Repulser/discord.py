@@ -62,7 +62,7 @@ class Attachment:
     __slots__ = ('id', 'size', 'height', 'width', 'filename', 'url', 'proxy_url', '_http')
 
     def __init__(self, *, data, state):
-        self.id = int(data['id'])
+        self.id = data['id']
         self.size = data['size']
         self.height = data.get('height')
         self.width = data.get('width')
@@ -180,7 +180,7 @@ class Message:
 
     def __init__(self, *, state, channel, data):
         self._state = state
-        self.id = int(data['id'])
+        self.id = data['id']
         self.webhook_id = utils._get_as_snowflake(data, 'webhook_id')
         self.reactions = [Reaction(message=self, data=d) for d in data.get('reactions', [])]
         self._update(channel, data)
@@ -272,7 +272,7 @@ class Message:
             return
 
         for mention in mentions:
-            id_search = int(mention['id'])
+            id_search = mention['id']
             member = self.guild.get_member(id_search)
             if member is not None:
                 self.mentions.append(member)

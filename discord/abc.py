@@ -220,7 +220,7 @@ class GuildChannel:
         everyone_id = self.guild.id
 
         for index, overridden in enumerate(data.get('permission_overwrites', [])):
-            overridden_id = int(overridden.pop('id'))
+            overridden_id = overridden.pop('id')
             self._overwrites.append(_Overwrites(id=overridden_id, **overridden))
 
             if overridden['type'] == 'member':

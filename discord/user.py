@@ -43,7 +43,7 @@ class BaseUser(_BaseUser):
     def __init__(self, *, state, data):
         self._state = state
         self.name = data['username']
-        self.id = int(data['id'])
+        self.id = data['id']
         self.discriminator = data['discriminator']
         self.avatar = data['avatar']
         self.bot = data.get('bot', False)
@@ -557,7 +557,7 @@ class User(BaseUser, discord.abc.Messageable):
         data = yield from state.http.get_user_profile(self.id)
 
         def transform(d):
-            return state._get_guild(int(d['id']))
+            return state._get_guild(d['id'])
 
         since = data.get('premium_since')
         mutual_guilds = list(filter(None, map(transform, data.get('mutual_guilds', []))))

@@ -99,7 +99,7 @@ class Role(Hashable):
     def __init__(self, *, guild, state, data):
         self.guild = guild
         self._state = state
-        self.id = int(data['id'])
+        self.id = data['id']
         self._update(data)
 
     def __str__(self):

@@ -39,12 +39,16 @@ from .errors import CommandNotFound, CommandError
 from .formatter import HelpFormatter
 
 def when_mentioned(bot, msg):
-    """A callable that implements a command prefix equivalent
-    to being mentioned, e.g. ``@bot ``."""
+    """A callable that implements a command prefix equivalent to being mentioned.
+
+    These are meant to be passed into the :attr:`.Bot.command_prefix` attribute.
+    """
     return [bot.user.mention + ' ', '<@!%s> ' % bot.user.id]
 
 def when_mentioned_or(*prefixes):
     """A callable that implements when mentioned or other prefixes provided.
+
+    These are meant to be passed into the :attr:`.Bot.command_prefix` attribute.
 
     Example
     --------
@@ -52,6 +56,19 @@ def when_mentioned_or(*prefixes):
     .. code-block:: python3
 
         bot = commands.Bot(command_prefix=commands.when_mentioned_or('!'))
+
+
+    .. note::
+
+        This callable returns another callable, so if this is done inside a custom
+        callable, you must call the returned callable, for example:
+
+        .. code-block:: python3
+
+            async def get_prefix(bot, message):
+                extras = await prefixes_for(message.guild) # returns a list
+                return commands.when_mentioned_or(*extras)(bot, message)
+
 
     See Also
     ----------
@@ -70,6 +87,9 @@ _mentions_transforms = {
 }
 
 _mention_pattern = re.compile('|'.join(_mentions_transforms.keys()))
+
+def _is_submodule(parent, child):
+    return parent == child or child.startswith(parent + ".")
 
 @asyncio.coroutine
 def _default_help_command(ctx, *commands : str):
@@ -256,7 +276,7 @@ class BotBase(GroupMixin):
             The function that was used as a global check.
         call_once: bool
             If the function should only be called once per
-            :meth:`.invoke` call.
+            :meth:`.Command.invoke` call.
         """
 
         if call_once:
@@ -288,7 +308,7 @@ class BotBase(GroupMixin):
         """A decorator that adds a "call once" global check to the bot.
 
         Unlike regular global checks, this one is called only once
-        per :meth:`.invoke` call.
+        per :meth:`.Command.invoke` call.
 
         Regular global checks are called whenever a command is called
         or :meth:`.Command.can_run` is called. This type of check
@@ -594,8 +614,7 @@ class BotBase(GroupMixin):
         All registered commands and event listeners that the
         cog has registered will be removed as well.
 
-        If no cog is found then ``None`` is returned, otherwise
-        the cog instance that is being removed is returned.
+        If no cog is found then this method has no effect.
 
         If the cog defines a special member function named ``__unload``
         then it is called when removal has completed. This function
@@ -609,7 +628,7 @@ class BotBase(GroupMixin):
 
         cog = self.cogs.pop(name, None)
         if cog is None:
-            return cog
+            return
 
         members = inspect.getmembers(cog)
         for name, member in members:
@@ -715,12 +734,12 @@ class BotBase(GroupMixin):
 
         # remove the cogs registered from the module
         for cogname, cog in self.cogs.copy().items():
-            if cog.__module__.startswith(lib_name):
+            if _is_submodule(lib_name, cog.__module__):
                 self.remove_cog(cogname)
 
         # first remove all the commands from the module
         for cmd in self.all_commands.copy().values():
-            if cmd.module.startswith(lib_name):
+            if _is_submodule(lib_name, cmd.module):
                 if isinstance(cmd, GroupMixin):
                     cmd.recursively_remove_all_commands()
                 self.remove_command(cmd.name)
@@ -729,7 +748,7 @@ class BotBase(GroupMixin):
         for event_list in self.extra_events.copy().values():
             remove = []
             for index, event in enumerate(event_list):
-                if event.__module__.startswith(lib_name):
+                if _is_submodule(lib_name, event.__module__):
                     remove.append(index)
 
             for index in reversed(remove):
@@ -749,6 +768,9 @@ class BotBase(GroupMixin):
             del lib
             del self.extensions[name]
             del sys.modules[name]
+            for module in list(sys.modules.keys()):
+                if _is_submodule(lib_name, module):
+                    del sys.modules[module]
 
     # command processing
 

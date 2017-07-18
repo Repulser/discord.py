@@ -596,10 +596,22 @@ Profile
     .. attribute:: premium
 
         A boolean indicating if the user has premium (i.e. Discord Nitro).
+    .. attribute:: nitro
+
+        An alias for :attr:`premium`.
     .. attribute:: premium_since
 
         A naive UTC datetime indicating how long the user has been premium since.
         This could be ``None`` if not applicable.
+    .. attribute:: staff
+
+        A boolean indicating if the user is Discord Staff.
+    .. attribute:: partner
+
+        A boolean indicating if the user is a Discord Partner.
+    .. attribute:: hypesquad
+
+        A boolean indicating if the user is in Discord HypeSquad.
     .. attribute:: mutual_guilds
 
         A list of :class:`Guild` that the :class:`ClientUser` shares with this
@@ -1234,7 +1246,7 @@ If you are using 3.4 however, you will have to use the more verbose way: ::
     iterator = channel.history() # or whatever returns an async iterator
     while True:
         try:
-            item = yield from iterator.get()
+            item = yield from iterator.next()
         except discord.NoMoreItems:
             break
 
@@ -1246,6 +1258,19 @@ Certain utilities make working with async iterators easier, detailed below.
 
     Represents the "AsyncIterator" concept. Note that no such class exists,
     it is purely abstract.
+
+    .. container:: operations
+
+        .. describe:: async for x in y
+
+            Iterates over the contents of the async iterator. Note
+            that this is only available in Python 3.5 or higher.
+
+
+    .. method:: next()
+
+        Advances the iterator by one, if possible. If no more items are found
+        then this raises :exc:`NoMoreItems`.
 
     .. method:: get(**attrs)
 
@@ -1656,20 +1681,20 @@ the user of the library.
 ClientUser
 ~~~~~~~~~~~~
 
-.. autoclass:: ClientUser
+.. autoclass:: ClientUser()
     :members:
     :inherited-members:
 
 Relationship
 ~~~~~~~~~~~~~~
 
-.. autoclass:: Relationship
+.. autoclass:: Relationship()
     :members:
 
 User
 ~~~~~
 
-.. autoclass:: User
+.. autoclass:: User()
     :members:
     :inherited-members:
     :exclude-members: history, typing
@@ -1683,19 +1708,19 @@ User
 Attachment
 ~~~~~~~~~~~
 
-.. autoclass:: Attachment
+.. autoclass:: Attachment()
     :members:
 
 Message
 ~~~~~~~
 
-.. autoclass:: Message
+.. autoclass:: Message()
     :members:
 
 Reaction
 ~~~~~~~~~
 
-.. autoclass:: Reaction
+.. autoclass:: Reaction()
     :members:
     :exclude-members: users
 
@@ -1705,19 +1730,19 @@ Reaction
 CallMessage
 ~~~~~~~~~~~~
 
-.. autoclass:: CallMessage
+.. autoclass:: CallMessage()
     :members:
 
 GroupCall
 ~~~~~~~~~~
 
-.. autoclass:: GroupCall
+.. autoclass:: GroupCall()
     :members:
 
 Guild
 ~~~~~~
 
-.. autoclass:: Guild
+.. autoclass:: Guild()
     :members:
     :exclude-members: audit_logs
 
@@ -1727,7 +1752,7 @@ Guild
 Member
 ~~~~~~
 
-.. autoclass:: Member
+.. autoclass:: Member()
     :members:
     :inherited-members:
     :exclude-members: history, typing
@@ -1741,31 +1766,31 @@ Member
 VoiceState
 ~~~~~~~~~~~
 
-.. autoclass:: VoiceState
+.. autoclass:: VoiceState()
     :members:
 
 Emoji
 ~~~~~
 
-.. autoclass:: Emoji
+.. autoclass:: Emoji()
     :members:
 
 PartialReactionEmoji
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: PartialReactionEmoji
+.. autoclass:: PartialReactionEmoji()
     :members:
 
 Role
 ~~~~~
 
-.. autoclass:: Role
+.. autoclass:: Role()
     :members:
 
 TextChannel
 ~~~~~~~~~~~~
 
-.. autoclass:: TextChannel
+.. autoclass:: TextChannel()
     :members:
     :inherited-members:
     :exclude-members: history, typing
@@ -1779,14 +1804,14 @@ TextChannel
 VoiceChannel
 ~~~~~~~~~~~~~
 
-.. autoclass:: VoiceChannel
+.. autoclass:: VoiceChannel()
     :members:
     :inherited-members:
 
 DMChannel
 ~~~~~~~~~
 
-.. autoclass:: DMChannel
+.. autoclass:: DMChannel()
     :members:
     :inherited-members:
     :exclude-members: history, typing
@@ -1800,7 +1825,7 @@ DMChannel
 GroupChannel
 ~~~~~~~~~~~~
 
-.. autoclass:: GroupChannel
+.. autoclass:: GroupChannel()
     :members:
     :inherited-members:
     :exclude-members: history, typing
@@ -1815,7 +1840,7 @@ GroupChannel
 Invite
 ~~~~~~~
 
-.. autoclass:: Invite
+.. autoclass:: Invite()
     :members:
 
 .. _discord_api_data:
